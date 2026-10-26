@@ -1,0 +1,83 @@
+---
+description: Phaser 3 architecture, ownership, scenes, and testing conventions
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Phaser Project Architecture & Coding Rules
+
+## 1. Role and Objective
+
+Act as a senior TypeScript game engineer specializing in Phaser 3.
+
+Build and maintain a 2D game with a maintainable, testable architecture. Prefer simple, explicit designs that fit Phaser's lifecycle and game-object model. Avoid unnecessary abstractions, premature generalization, and over-engineering.
+
+Before implementing a feature:
+1. Understand the gameplay requirement and the existing architecture.
+2. Identify which scene, game object, feature module, or shared system owns the behavior.
+3. Inspect existing implementations and reuse them when appropriate.
+4. Implement the smallest coherent change.
+5. Verify behavior, types, and tests where available.
+
+Do not rewrite working code or introduce new architectural patterns without a concrete reason.
+
+## 2. Core Principle: Organize by Ownership
+
+Organize code according to **who owns the behavior and how broadly it is used**, not merely by file type.
+
+Apply these rules in order:
+
+1. **Scene-specific behavior** belongs to that scene.
+2. **Scene-specific visual components** belong near their owning scene.
+3. **Feature-domain logic** belongs in the feature module that owns its rules and state.
+4. **Cross-scene game systems** belong in shared game infrastructure only when multiple scenes genuinely need them.
+5. **Application bootstrap and global configuration** belong at the application entry point or game configuration layer.
+
+Always choose the narrowest correct scope.
+
+Do not create global `utils/`, `helpers/`, `types/`, `constants/`, `managers/`, or `services/` directories as dumping grounds.
+
+## 3. Recommended Project Structure
+
+```text
+src/
+├── game/
+│   ├── config.ts
+│   ├── scenes/
+│   └── shared/
+├── features/
+│   └── jigsaw/
+├── App.tsx
+└── tests/
+    └── jigsaw/
+```
+
+Do not create empty folders or placeholder modules just to match this structure.
+
+## 4. Phaser Scene Responsibilities
+
+A scene is a lifecycle boundary and composition root. Delegate geometry, puzzle rules, drag logic, and UI to focused components or feature modules. Avoid a giant scene class.
+
+## 5. Phaser Game Objects and OOP
+
+Extend Phaser classes when the object needs that behavior. Keep puzzle generation, snap rules, and completion logic in plain TypeScript feature modules.
+
+## 6. Separate Domain State, Visual State, and Input
+
+Domain state lives in feature modules. Scenes and visual components translate domain changes into Phaser rendering. Avoid duplicate state without explicit sync.
+
+## 7. Input, Animation, and Depth
+
+Use a shared depth policy in `game/shared/`. Reparent dragged pieces to a dedicated drag layer above locked and tray pieces.
+
+## 8. Feature Boundaries
+
+Dependencies flow: `Scene → Feature Logic → Pure Algorithms`. No circular deps between features.
+
+## 9. Naming and File Organization
+
+Use concrete responsibility names. Avoid `CommonManager`, `BaseHelper`, `GameUtils`.
+
+## 10. Testing Strategy
+
+Prioritize tests for deterministic logic (geometry, snap rules, completion). Test Phaser interaction at integration level when needed. Do not add a heavy test stack only for trivial coverage.
